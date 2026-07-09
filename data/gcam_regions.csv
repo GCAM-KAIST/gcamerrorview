@@ -1,0 +1,333 @@
+# gcam_regions.csv - maps a market-name prefix to one of GCAM's 32 regions.
+prefix,region
+USA,USA
+Africa_Eastern,Africa_Eastern
+Africa_Northern,Africa_Northern
+Africa_Southern,Africa_Southern
+Africa_Western,Africa_Western
+Australia_NZ,Australia_NZ
+Brazil,Brazil
+Canada,Canada
+Central America and Caribbean,Central America and Caribbean
+Central Asia,Central Asia
+China,China
+EU-12,EU-12
+EU-15,EU-15
+Ukraine,Ukraine
+Europe_Non_EU,Europe_Non_EU
+European Free Trade Association,European Free Trade Association
+India,India
+Indonesia,Indonesia
+Japan,Japan
+Mexico,Mexico
+Middle East,Middle East
+Pakistan,Pakistan
+Russia,Russia
+South Africa,South Africa
+South America_Northern,South America_Northern
+South America_Southern,South America_Southern
+South Asia,South Asia
+South Korea,South Korea
+Southeast Asia,Southeast Asia
+Taiwan,Taiwan
+Argentina,Argentina
+Colombia,Colombia
+ArcticIsl,EU-15
+NWTerr,Canada
+SiberiaN,Russia
+SiberiaW,Russia
+KaraSea,Russia
+LenaR,Russia
+PacArctic,USA
+ScndnvN,European Free Trade Association
+BarentsSea,Russia
+Mackenzie,Canada
+Iceland,European Free Trade Association
+Sweden,EU-15
+Finland,EU-15
+DvinaRN,Russia
+HudsonBay,Canada
+Scotland,EU-15
+NevaR,Russia
+VolgaR,Russia
+CanAtl,Canada
+BalticSea,EU-12
+DnkGrmCst,EU-15
+NarvaR,Russia
+NelsonR,Canada
+Ireland,EU-15
+DaugavaR,Europe_Non_EU
+EngWales,EU-15
+FraserR,Canada
+EmsWeserR,EU-15
+OderR,EU-12
+WislaR,EU-12
+ElbeR,EU-15
+RhineR,EU-15
+PolandCst,EU-12
+ChurchillR,Canada
+NemanR,EU-12
+ScheldtR,EU-15
+RusCstSE,Russia
+UralR,Russia
+DnieperR,Ukraine
+StLwrncR,Canada
+FranceCstW,EU-15
+Gobi,China
+AmurR,Russia
+LoireR,EU-15
+CaspianNE,Central Asia
+SeineR,EU-15
+BlackSeaN,Ukraine
+YeniseiR,Russia
+DniesterR,Ukraine
+ItalyCstE,EU-15
+CaspianE,Central Asia
+DonR,Russia
+DanubeR,EU-12
+AdrBlkSea,EU-15
+ObR,Russia
+PoR,EU-15
+AmuDaryaR,Central Asia
+ItalyCstW,EU-15
+IberiaCst,EU-15
+FranceCstS,EU-15
+RhoneR,EU-15
+MeditIsl,EU-15
+Gironde,EU-15
+Korea,South Korea
+BoHai,China
+SpainCstSE,EU-15
+LBalkash,Central Asia
+TiberR,EU-15
+BlackSeaS,Europe_Non_EU
+TagusR,EU-15
+CaspianSW,Middle East
+EbroR,EU-15
+DouroR,EU-15
+MeditE,Europe_Non_EU
+SyrDaryaR,Central Asia
+ZiyaHe,China
+ChinaCst,China
+HuangHeR,China
+MeditS,Africa_Northern
+GuadianaR,EU-15
+Iran,Middle East
+GuadalqR,EU-15
+TigrEuphR,Middle East
+Tarim,China
+AfrCstNW,Africa_Northern
+NileR,Africa_Eastern
+PersianGulf,Middle East
+IndusR,Pakistan
+FarahrudR,South Asia
+MexBaja,Mexico
+Tibet,China
+RedSeaE,Middle East
+ArabianP,Middle East
+DeadSea,Middle East
+MexCstNW,Mexico
+Helmand,South Asia
+SinaiP,Africa_Northern
+EJrdnSyr,Middle East
+AfrCstNE,Africa_Eastern
+Caribbean,Central America and Caribbean
+HamuMashR,Pakistan
+ArabianSea,Pakistan
+MexGulf,Mexico
+Yangtze,China
+SabarmatiR,India
+XunJiang,China
+Hong,Southeast Asia
+GangesR,India
+YucatanP,Mexico
+SChinaSea,China
+MahiR,India
+MexInt,Mexico
+MexCstW,Mexico
+BengalBay,Southeast Asia
+TaptiR,India
+BengalW,India
+Phlppns,Southeast Asia
+BrahmaniR,India
+Guam,Southeast Asia
+MahanadiR,India
+GodavariR,India
+Hainan,China
+Mekong,Southeast Asia
+VietnamCst,Southeast Asia
+Salween,China
+IndCstNE,India
+IndCstW,India
+Papaloapan,Mexico
+RioLerma,Mexico
+RioVerde,Mexico
+GrijUsuR,Mexico
+RioBalsas,Mexico
+CntAmer,Central America and Caribbean
+Tehuantpc,Mexico
+IrrawaddyR,Southeast Asia
+SittaungR,Southeast Asia
+MalaysiaP,Southeast Asia
+KrishnaR,India
+AdnNicIsl,India
+AfrCstW,Africa_Western
+SAmerCstN,South America_Northern
+AfrIntN,Africa_Northern
+IndCstE,India
+ChaoPhrR,Southeast Asia
+PennarR,India
+ThaiGulf,Southeast Asia
+NigerR,Africa_Western
+Micronesia,Southeast Asia
+LChad,Africa_Western
+SenegalR,Africa_Western
+CauveryR,India
+SriLanka,South Asia
+IndCstS,India
+OrinocoR,Brazil
+ColEcuaCst,South America_Southern
+IdnE,Indonesia
+BorneoCstN,Southeast Asia
+VoltaR,Africa_Western
+SAmerCstNE,South America_Northern
+GuineaGulf,Africa_Western
+Sumatra,Indonesia
+Sulawesi,Indonesia
+Kalimantan,Indonesia
+MagdalenaR,Colombia
+IrianJaya,Indonesia
+AmazonR,Brazil
+ChileCstS,South America_Southern
+ShebJubR,Africa_Eastern
+AfrCstE,Africa_Southern
+BrzCstN,Brazil
+PapuaCst,Southeast Asia
+TocantinsR,Brazil
+JavaTimor,Indonesia
+SolomonIsl,Southeast Asia
+Madagascar,Africa_Eastern
+SepikR,Southeast Asia
+RiftValley,Africa_Eastern
+PeruCst,South America_Southern
+FlyR,Southeast Asia
+AngolaCst,Africa_Southern
+CongoR,Africa_Western
+AusCstN,Australia_NZ
+NewCaledn,Southeast Asia
+BrzCstE,Brazil
+ParnaibaR,Brazil
+ZambeziR,Africa_Southern
+AusCstE,Australia_NZ
+AfrCstSE,Africa_Southern
+AusCstW,Australia_NZ
+SaoFrancR,Brazil
+AusInt,Australia_NZ
+OrangeR,South Africa
+BrzCstS,Brazil
+AfrCstSW,Africa_Southern
+AfrIntS,Africa_Southern
+AfrCstS,South Africa
+LimpopoR,South Africa
+LaPuna,South America_Southern
+NewZealand,Australia_NZ
+AusCstS,Australia_NZ
+MarChiq,Argentina
+AfrCstSSW,South Africa
+Salinas,Argentina
+RioLaPlata,Brazil
+ChileCstN,South America_Southern
+MurrayDrlg,Australia_NZ
+Pampas,Argentina
+ArgCstN,Argentina
+Tasmania,Australia_NZ
+ArgColoR,Argentina
+NegroR,Argentina
+Patagonia,Argentina
+ArgCstS,Argentina
+California,USA
+MissppRN,USA
+MissppRS,USA
+UsaColoRN,USA
+UsaColoRS,USA
+GreatBasin,USA
+MissouriR,USA
+ArkWhtRedR,USA
+TexasCst,USA
+UsaCstSE,USA
+GreatLakes,Canada
+OhioR,USA
+UsaPacNW,USA
+TennR,USA
+RioGrande,USA
+UsaCstNE,USA
+UsaCstE,USA
+Hawaii,USA
+NarmadaR,India
+AK,USA
+Alaska grid,USA
+AL,USA
+Southeast grid,USA
+AR,USA
+AZ,USA
+Southwest grid,USA
+CA,USA
+California grid,USA
+CO,USA
+CT,USA
+New England grid,USA
+DC,USA
+Mid-Atlantic grid,USA
+DE,USA
+FL,USA
+Florida grid,USA
+GA,USA
+HI,USA
+Hawaii grid,USA
+IA,USA
+Central Northwest grid,USA
+ID,USA
+Northwest grid,USA
+IL,USA
+Central Northeast grid,USA
+IN,USA
+Central East grid,USA
+KS,USA
+Central Southwest grid,USA
+KY,USA
+LA,USA
+MA,USA
+MD,USA
+ME,USA
+MI,USA
+MN,USA
+MO,USA
+MS,USA
+MT,USA
+NC,USA
+ND,USA
+NE,USA
+NH,USA
+NJ,USA
+NM,USA
+NV,USA
+NY,USA
+New York grid,USA
+OH,USA
+OK,USA
+OR,USA
+PA,USA
+RI,USA
+SC,USA
+SD,USA
+TN,USA
+TX,USA
+Texas grid,USA
+UT,USA
+VA,USA
+VT,USA
+WA,USA
+WI,USA
+WV,USA
+WY,USA
+CO2,

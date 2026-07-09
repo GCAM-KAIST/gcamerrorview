@@ -1,0 +1,74 @@
+# Build gcamlog for Windows and macOS, and attach both to a GitHub Release.
+# Trigger: push a version tag (v1.0.0) - or run it manually from the Actions tab.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build tools
+        run: pip install pyinstaller openpyxl
+      - name: Build the exe
+        run: pyinstaller --onefile --windowed --name gcamlog --icon assets/gcamlog.ico --add-data "assets/gcamlog.ico;assets" --add-data "assets/gcamlog.png;assets" --add-data "data/gcam_regions.csv;data" --add-data "data/gcam_systems.csv;data" gcamlog.py
+      - name: Rename for the release
+        run: Copy-Item dist/gcamlog.exe gcamlog-windows.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gcamlog-windows
+          path: gcamlog-windows.exe
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build tools
+        run: pip install pyinstaller openpyxl
+      - name: Make the Mac icon (.icns) from the png
+        run: |
+          mkdir gcamlog.iconset
+          for s in 16 32 64 128 256; do
+            sips -z $s $s assets/gcamlog.png --out gcamlog.iconset/icon_${s}x${s}.png >/dev/null
+          done
+          cp gcamlog.iconset/icon_32x32.png   gcamlog.iconset/icon_16x16@2x.png
+          cp gcamlog.iconset/icon_64x64.png   gcamlog.iconset/icon_32x32@2x.png
+          cp gcamlog.iconset/icon_256x256.png gcamlog.iconset/icon_128x128@2x.png
+          iconutil -c icns gcamlog.iconset -o gcamlog.icns
+      - name: Build the app (universal - Intel + Apple Silicon)
+        run: pyinstaller --onefile --windowed --name gcamlog --target-arch universal2 --icon gcamlog.icns --add-data "assets/gcamlog.png:assets" --add-data "data/gcam_regions.csv:data" --add-data "data/gcam_systems.csv:data" gcamlog.py
+      - name: Zip the app bundle
+        run: cd dist && zip -r ../gcamlog-macos.zip gcamlog.app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gcamlog-macos
+          path: gcamlog-macos.zip
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - name: Create the release with both files
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            gcamlog-windows.exe
+            gcamlog-macos.zip
+          generate_release_notes: true

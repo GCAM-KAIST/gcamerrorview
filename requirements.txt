@@ -1,0 +1,8 @@
+# Runtime dependency (needed only if you run gcamlog.py directly):
+openpyxl>=3.1
+
+# Build-only dependency (needed only to compile the .exe via build_exe.bat):
+pyinstaller>=6.0
+
+# Note: tkinter is part of the Python standard library on Windows/macOS
+# (on Linux install it with your package manager, e.g. `sudo apt install python3-tk`).

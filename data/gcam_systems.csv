@@ -1,0 +1,250 @@
+# gcam_systems.csv - which GCAM system a market belongs to.
+keyword,system,source
+industrial wastewater treatment,Water,official: water/A73.sector.csv
+municipal wastewater treatment,Water,official: water/A74.sector.csv
+irrigation water abstraction,Water,official: water/A72.sector.csv
+industrial water abstraction,Water,official: water/A73.sector.csv
+municipal water distribution,Water,official: water/A74.sector.csv
+regional woodpulp for energy,Energy,official: energy/A21.sector.csv
+process heat food processing,Energy,official: energy/A328.sector.csv
+unconventional oil upscaling,Energy,official: energy/A10.rsrc_info_renewables_others.csv
+municipal water abstraction,Water,official: water/A74.sector.csv
+other industrial energy use,Energy,official: energy/A32.sector.csv
+other industrial feedstocks,Energy,official: energy/A32.sector.csv
+industrial water treatment,Water,official: water/A73.sector.csv
+regional sugar for ethanol,Energy,official: energy/A21.sector.csv
+refined liquids industrial,Energy,official: energy/A26.sector.csv
+municipal water treatment,Water,official: water/A74.sector.csv
+regional corn for ethanol,Energy,official: energy/A21.sector.csv
+agricultural energy use,Energy,official: energy/A324.sector.csv
+construction energy use,Energy,official: energy/A324.sector.csv
+construction feedstocks,Energy,official: energy/A324.sector.csv
+waste biomass for paper,Energy,official: energy/A327.sector.csv
+NonFoodDemand_sawnwood,Land-use,official: aglu/A_demand_nesting_subsector.csv
+electricity_net_ownuse,Energy,official: energy/A26.sector.csv
+refined liquids enduse,Energy,official: energy/A26.sector.csv
+offshore wind resource,Energy,official: energy/A10.rsrc_info_renewables_others.csv
+FoodDemand_NonStaples,Land-use,official: aglu/A_demand_nesting_subsector.csv
+H2 central production,Energy,official: energy/A25.sector.csv
+H2 wholesale delivery,Energy,official: energy/A25.sector.csv
+resid heating TradBio,Energy,official: energy/A44.sector.csv
+global solar resource,Energy,official: energy/A10.rsrc_info_renewables_others.csv
+onshore wind resource,Energy,official: energy/A10.rsrc_info_renewables_others.csv
+resid clothes washers,Energy,official: gcam-usa/A44.sector.csv
+resid cooling modern,Energy,official: energy/A44.sector.csv
+resid others TradBio,Energy,official: energy/A44.sector.csv
+resid heating modern,Energy,official: energy/A44.sector.csv
+trn_pass_road_LDV_2W,Energy,official: energy/A54.sector.csv
+trn_pass_road_LDV_4W,Energy,official: energy/A54.sector.csv
+resid clothes dryers,Energy,official: gcam-usa/A44.sector.csv
+Pasture_FodderGrass,Land-use,official: aglu/A_an_input_supplysector.csv
+woodpulp_processing,Land-use,official: aglu/A_an_input_supplysector.csv
+sawnwood_processing,Land-use,official: aglu/A_an_input_supplysector.csv
+NonFoodDemand_Crops,Land-use,official: aglu/A_demand_nesting_subsector.csv
+regional biomassOil,Energy,official: energy/A21.sector.csv
+process heat cement,Energy,official: energy/A321.sector.csv
+chemical energy use,Energy,official: energy/A325.sector.csv
+chemical feedstocks,Energy,official: energy/A325.sector.csv
+resid others modern,Energy,official: energy/A44.sector.csv
+traditional biomass,Energy,official: energy/A10.rsrc_info_renewables_others.csv
+resid refrigerators,Energy,official: gcam-usa/A44.sector.csv
+FodderHerb_Residue,Land-use,official: aglu/A_an_input_supplysector.csv
+NonFoodDemand_Meat,Land-use,official: aglu/A_demand_nesting_subsector.csv
+FoodDemand_Staples,Land-use,official: aglu/A_demand_nesting_subsector.csv
+H2 retail delivery,Energy,official: energy/A25.sector.csv
+backup_electricity,Energy,official: energy/A26.sector.csv
+process heat paper,Energy,official: energy/A327.sector.csv
+resid heating coal,Energy,official: energy/A44.sector.csv
+DDGS and feedcakes,Energy,official: energy/A21.rsrc_info.csv
+resid furnace fans,Energy,official: gcam-usa/A44.sector.csv
+comm refrigeration,Energy,official: gcam-usa/A44.sector.csv
+desalinated water,Water,official: water/A71.sector.csv
+nuclearFuelGenIII,Energy,official: energy/A22.sector.csv
+delivered biomass,Energy,official: energy/A26.sector.csv
+mining energy use,Energy,official: energy/A324.sector.csv
+resid others coal,Energy,official: energy/A44.sector.csv
+trn_pass_road_LDV,Energy,official: energy/A54.sector.csv
+trn_pass_road_bus,Energy,official: energy/A54.sector.csv
+trn_shipping_intl,Energy,official: energy/A54.sector.csv
+trn_aviation_intl,Energy,official: energy/A54.sector.csv
+distributed_solar,Energy,official: energy/A10.rsrc_info_renewables_others.csv
+comm non-building,Energy,official: gcam-usa/A44.sector.csv
+resid televisions,Energy,official: gcam-usa/A44.sector.csv
+resid dishwashers,Energy,official: gcam-usa/A44.sector.csv
+Scavenging_Other,Land-use,official: aglu/A_an_input_supplysector.csv
+regional biomass,Land-use,official: aglu/A_bio_supplysector.csv
+nuclearFuelGenII,Energy,official: energy/A22.sector.csv
+regional ammonia,Energy,official: energy/A322.sector.csv
+trn_freight_road,Energy,official: energy/A54.sector.csv
+process heat dac,Energy,official: energy/A62.sector.csv
+comm ventilation,Energy,official: gcam-usa/A44.sector.csv
+woodpulp_energy,Land-use,official: aglu/A_an_input_supplysector.csv
+municipal water,Water,official: water/A45.sector.csv
+H2 liquid truck,Energy,official: energy/A25.sector.csv
+food processing,Energy,official: energy/A328.sector.csv
+resid computers,Energy,official: gcam-usa/A44.sector.csv
+resid hot water,Energy,official: gcam-usa/A44.sector.csv
+traded biomass,Land-use,official: aglu/A_bio_supplysector.csv
+gas processing,Energy,official: energy/A22.sector.csv
+delivered coal,Energy,official: energy/A26.sector.csv
+other industry,Energy,official: energy/A32.sector.csv
+traded ammonia,Energy,official: energy/A322.sector.csv
+iron and steel,Energy,official: energy/A323.sector.csv
+transportation,Energy,official: energy/A52.sector.csv
+carbon-storage,Energy,official: energy/A61.sector.csv
+resid freezers,Energy,official: gcam-usa/A44.sector.csv
+resid lighting,Energy,official: gcam-usa/A44.sector.csv
+comm hot water,Energy,official: gcam-usa/A44.sector.csv
+total biomass,Land-use,official: aglu/A_bio_supplysector.csv
+water_td_muni,Water,official: water/A03.sector.csv
+water_td_elec,Water,official: water/A03.sector.csv
+district heat,Energy,official: energy/A24.sector.csv
+H2 industrial,Energy,official: energy/A25.sector.csv
+wholesale gas,Energy,official: energy/A26.sector.csv
+delivered gas,Energy,official: energy/A26.sector.csv
+trn_pass_road,Energy,official: energy/A54.sector.csv
+resid cooking,Energy,official: gcam-usa/A44.sector.csv
+resid cooling,Energy,official: gcam-usa/A44.sector.csv
+comm lighting,Energy,official: gcam-usa/A44.sector.csv
+resid heating,Energy,official: gcam-usa/A44.sector.csv
+water_td_ind,Water,official: water/A03.sector.csv
+water_td_pri,Water,official: water/A03.sector.csv
+water_td_irr,Water,official: water/A03.sector.csv
+elect_td_bld,Energy,official: energy/A23.sector.csv
+elect_td_ind,Energy,official: energy/A26.sector.csv
+gas pipeline,Energy,official: energy/A26.sector.csv
+elect_td_trn,Energy,official: energy/A26.sector.csv
+N fertilizer,Energy,official: energy/A322.sector.csv
+construction,Energy,official: energy/A324.sector.csv
+comm cooling,Energy,official: energy/A44.sector.csv
+comm heating,Energy,official: energy/A44.sector.csv
+comm cooking,Energy,official: gcam-usa/A44.sector.csv
+FodderGrass,Land-use,official: aglu/A_agSupplySector.csv
+water_td_an,Water,official: water/A03.sector.csv
+electricity,Energy,official: energy/A23.sector.csv
+H2 pipeline,Energy,official: energy/A25.sector.csv
+comm others,Energy,official: energy/A44.sector.csv
+trn_freight,Energy,official: energy/A54.sector.csv
+CO2 removal,Energy,official: energy/A62.sector.csv
+natural gas,Energy,official: energy/A10.rsrc_info_fossils.csv
+resid other,Energy,official: gcam-usa/A44.sector.csv
+comm office,Energy,official: gcam-usa/A44.sector.csv
+Vegetables,Land-use,official: aglu/A_agSupplySector.csv
+FodderHerb,Land-use,official: aglu/A_agSupplySector.csv
+OtherGrain,Land-use,official: aglu/A_agSupplySector.csv
+csp_backup,Energy,official: energy/A26.sector.csv
+geothermal,Energy,official: energy/A10.rsrc_info_renewables_others.csv
+comm other,Energy,official: gcam-usa/A44.sector.csv
+NutsSeeds,Land-use,official: aglu/A_agSupplySector.csv
+FiberCrop,Land-use,official: aglu/A_agSupplySector.csv
+SugarCrop,Land-use,official: aglu/A_agSupplySector.csv
+RootTuber,Land-use,official: aglu/A_agSupplySector.csv
+FeedCrops,Land-use,official: aglu/A_an_input_supplysector.csv
+SheepGoat,Land-use,official: aglu/A_an_supplysector.csv
+crude oil,Energy,official: energy/A10.rsrc_info_fossils.csv
+limestone,Energy,official: energy/A10.rsrc_info_renewables_others.csv
+MiscCrop,Land-use,official: aglu/A_agSupplySector.csv
+refining,Energy,official: energy/A22.sector.csv
+chemical,Energy,official: energy/A325.sector.csv
+aluminum,Energy,official: energy/A326.sector.csv
+building,Energy,official: energy/A42.sector.csv
+trn_pass,Energy,official: energy/A54.sector.csv
+Pasture,Land-use,official: aglu/A_agSupplySector.csv
+Legumes,Land-use,official: aglu/A_agSupplySector.csv
+biomass,Land-use,official: aglu/A_agSupplySector.csv
+OilCrop,Land-use,official: aglu/A_agSupplySector.csv
+Soybean,Land-use,official: aglu/A_agSupplySector.csv
+OilPalm,Land-use,official: aglu/A_agSupplySector.csv
+Poultry,Land-use,official: aglu/A_an_supplysector.csv
+H2 MHDV,Energy,official: energy/A25.sector.csv
+ammonia,Energy,official: energy/A322.sector.csv
+alumina,Energy,official: energy/A326.sector.csv
+uranium,Energy,official: energy/A10.rsrc_info_uranium.csv
+Fruits,Land-use,official: aglu/A_agSupplySector.csv
+Forest,Land-use,official: aglu/A_agSupplySector.csv
+H2 LDV,Energy,official: energy/A25.sector.csv
+cement,Energy,official: energy/A321.sector.csv
+airCO2,Energy,official: energy/A62.sector.csv
+Wheat,Land-use,official: aglu/A_agSupplySector.csv
+Dairy,Land-use,official: aglu/A_an_supplysector.csv
+paper,Energy,official: energy/A327.sector.csv
+scrap,Energy,official: energy/A10.rsrc_info_renewables_others.csv
+Rice,Land-use,official: aglu/A_agSupplySector.csv
+Corn,Land-use,official: aglu/A_agSupplySector.csv
+Beef,Land-use,official: aglu/A_an_supplysector.csv
+Pork,Land-use,official: aglu/A_an_supplysector.csv
+coal,Energy,official: energy/A10.rsrc_info_fossils.csv
+LH2,Energy,official: energy/A25.sector.csv
+water withdrawals,Water,
+water consumption,Water,
+bio_externality,Energy,
+internal-gains,Energy,
+groundwater,Water,
+bio-ceiling,Energy,
+wastewater,Water,
+nuts_seeds,Land-use,
+root_tuber,Land-use,
+ag service,Land-use,
+scavenging,Land-use,
+desalinat,Water,
+misc crop,Land-use,
+roundwood,Land-use,
+woodpulp,Land-use,
+sawnwood,Land-use,
+residue,Land-use,
+runoff,Water,
+backup,Energy,
+LNG,Energy,
+NMVOC,Emissions,
+F-gas,Emissions,
+emiss,Emissions,
+C2F6,Emissions,
+fgas,Emissions,
+CO2,Emissions,
+CH4,Emissions,
+N2O,Emissions,
+SO2,Emissions,
+NOx,Emissions,
+NH3,Emissions,
+BC_,Emissions,
+OC_,Emissions,
+HFC,Emissions,
+PFC,Emissions,
+SF6,Emissions,
+CF4,Emissions,
+GHG,Emissions,
+LUC,Emissions,
+socioeconomic,Economic,
+interest rate,Economic,
+unemployment,Economic,
+consumption,Economic,
+Capital,Economic,
+savings,Economic,
+Labor,Economic,
+GDP,Economic,
+concentration,Climate,
+temperature,Climate,
+forcing,Climate,
+climate,Climate,
+hector,Climate,
+water,Water,
+crop,Land-use,
+land,Land-use,
+meat,Land-use,
+food,Land-use,
+fodder,Land-use,
+electric,Energy,
+elect,Energy,
+elec,Energy,
+refin,Energy,
+hydrogen,Energy,
+nuclear,Energy,
+wind,Energy,
+solar,Energy,
+ethanol,Energy,
+bio,Energy,
+gas,Energy,
+oil,Energy,
+fuel,Energy,
+heat,Energy,
+energy,Energy,

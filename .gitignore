@@ -1,0 +1,22 @@
+# --- PyInstaller build artifacts ---
+build/
+dist/
+*.spec
+__pycache__/
+*.pyc
+
+# --- Binaries live on the Releases page, not in git ---
+gcamlog.exe
+gcamlog-windows.exe
+gcamlog-macos.zip
+gcamlog.app/
+
+# --- Tool output (generated Excel files) ---
+gcamlog_*.xlsx
+
+# --- Never publish real GCAM run logs (private paths / unpublished data) ---
+# The tiny synthetic demo log is explicitly kept (exception below).
+*.log
+main_log*.txt
+!sample/sample_main_log.txt
+
