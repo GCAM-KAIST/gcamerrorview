@@ -1,25 +1,25 @@
-# gcamlog
+# gcamerrorview
 
-<img src="assets/gcamlog.png" alt="gcamlog icon" width="96" align="right">
+<img src="assets/gcamerrorview.png" alt="gcamerrorview icon" width="96" align="right">
 
 **Turn a [GCAM](https://github.com/JGCRI/gcam-core) "did not solve" log into clean,
 colour-coded tables** that point straight at the markets causing the failure - shown right
 in the app, with one click to save them as an Excel sheet.
 
 When GCAM fails to solve a period it prints hundreds of unsolved markets into the log.
-Most of them are noise (supply and demand already almost match). gcamlog pulls out
+Most of them are noise (supply and demand already almost match). gcamerrorview pulls out
 **only the rows that matter**, groups them by *why* they matter, and colour-codes them, so
 you can hand a colleague one clean sheet instead of a 30,000-line log.
 
-<img src="assets/screenshot_app.png" alt="the gcamlog window" width="560">
+<img src="assets/screenshot_app.png" alt="the gcamerrorview window" width="560">
 
 ## Two ways to run it
 
 1. **Download the app from the [Releases page](../../releases)** and double-click it - nothing to
    install; Python is bundled inside. *Easiest.*
-   * **Windows**: `gcamlog-windows.exe`
-   * **macOS**: `gcamlog-macos.zip` (unzip, then **right-click the app > Open** the first time)
-2. **Run the script**: `python gcamlog.py`. Needs Python 3.9+ and `openpyxl`.
+   * **Windows**: `gcamerrorview-windows.exe`
+   * **macOS**: `gcamerrorview-macos.zip` (unzip, then **right-click the app > Open** the first time)
+2. **Run the script**: `python gcamerrorview.py`. Needs Python 3.9+ and `openpyxl`.
 
 Both open the same small window and produce the same tables and Excel. Details for each are below.
 
@@ -27,7 +27,7 @@ Both open the same small window and produce the same tables and Excel. Details f
 
 | item | description |
 | --- | --- |
-| `gcamlog.py` | the source code; both apps are built from this one file |
+| `gcamerrorview.py` | the source code; both apps are built from this one file |
 | `data/gcam_regions.csv` | editable map: market prefix → GCAM region (32 regions, water basins, GCAM-USA states) |
 | `data/gcam_systems.csv` | editable map: keyword → GCAM system |
 | `assets/` | the app icon, logo and screenshots |
@@ -53,7 +53,7 @@ Press **Save Excel (.xlsx)** there to keep the same thing as a file:
 
 A single Excel file: one **README** sheet, then **three sheets for each year** you ask for
 (one year `2025`, several `2025,2030`, a range `2025-2040` = every failed year inside it, or
-`all`). The file is named `gcamlog_<scenario>_<yyyymmdd-hhmm>_<year(s)>.xlsx` (scenario and
+`all`). The file is named `gcamerrorview_<scenario>_<yyyymmdd-hhmm>_<year(s)>.xlsx` (scenario and
 run time come from the log) and saved next to the log. The three per-year sheets (the app's
 tabs mirror the same tables) are:
 
@@ -119,7 +119,7 @@ Needs **Python 3.9+**.
 
 ```bash
 pip install -r requirements.txt
-python gcamlog.py
+python gcamerrorview.py
 ```
 
 Headless (no popup), for scripting - this mode always writes the Excel directly. Args are
@@ -127,7 +127,7 @@ Headless (no popup), for scripting - this mode always writes the Excel directly.
 `2025,2030`, `2025-2040`, or `all`:
 
 ```bash
-python gcamlog.py "<log>" 2025 iron,steel 1 15 15 1 0
+python gcamerrorview.py "<log>" 2025 iron,steel 1 15 15 1 0
 ```
 
 ## Build the .exe yourself
@@ -136,18 +136,18 @@ You need **Python 3.9+** installed first (that is the only prerequisite). Then, 
 
 ```bash
 pip install pyinstaller openpyxl
-pyinstaller --onefile --windowed --name gcamlog --icon assets\gcamlog.ico --add-data "assets\gcamlog.ico;assets" --add-data "assets\gcamlog.png;assets" --add-data "data\gcam_regions.csv;data" --add-data "data\gcam_systems.csv;data" gcamlog.py
+pyinstaller --onefile --windowed --name gcamerrorview --icon assets\gcamerrorview.ico --add-data "assets\gcamerrorview.ico;assets" --add-data "assets\gcamerrorview.png;assets" --add-data "data\gcam_regions.csv;data" --add-data "data\gcam_systems.csv;data" gcamerrorview.py
 ```
 
 * `--onefile` bundles Python and the libraries into one `.exe` (nothing to install on the target PC).
 * `--windowed` hides the black console window (this is a GUI app).
 
 Easiest of all: just **double-click `build_exe.bat`**. It installs what it needs and puts a fresh
-`gcamlog.exe` in this folder.
+`gcamerrorview.exe` in this folder.
 
 The repository also builds **both the Windows and macOS apps automatically**: pushing a version tag
 (e.g. `v1.0.0`) runs `.github/workflows/release.yml` on GitHub's own Windows and Mac machines and
-attaches `gcamlog-windows.exe` and `gcamlog-macos.zip` to a new release.
+attaches `gcamerrorview-windows.exe` and `gcamerrorview-macos.zip` to a new release.
 
 ## License
 

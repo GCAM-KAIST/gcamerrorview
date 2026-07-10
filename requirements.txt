@@ -1,4 +1,4 @@
-# Runtime dependency (needed only if you run gcamlog.py directly):
+# Runtime dependency (needed only if you run gcamerrorview.py directly):
 openpyxl>=3.1
 
 # Build-only dependency (needed only to compile the .exe via build_exe.bat):
