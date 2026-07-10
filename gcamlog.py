@@ -3,8 +3,10 @@
 gcamlog: turn a GCAM "did not solve" log into a simple Excel sheet.
 
 WHAT IT DOES
-  Reads a GCAM main log, picks ONE period (e.g. 2025), and writes an Excel workbook with up
-  to four sheets:
+  Reads a GCAM main log, picks the period(s) you ask for (2025, or 2025,2030, or a range
+  2025-2040 = every failed year inside it, or 'all'), and shows the filtered results in a
+  table viewer INSIDE the app - one tab per sheet. An optional button there saves the same
+  thing as an Excel workbook: one README sheet, then up to three sheets per year:
     - README                 : what each column means
     - error <year> solvable  : the Part-1 markets, filtered to what matters, with a "criteria"
                                column (1 top line(s), 2 our change, 3 top ED, 4 top RED)
@@ -16,7 +18,8 @@ WHAT IT DOES
 HOW TO RUN
   Just double-click it, or:   python gcamlog.py
   A small window pops up and asks for the search word (e.g. iron,steel) and a few options.
-  The Excel is saved in the SAME folder as the log.
+  Generate opens the results tables in the app; "Save Excel (.xlsx)" saves the file in the
+  SAME folder as the log. (The headless mode below always writes the Excel directly.)
 
   (Advanced) headless:  python gcamlog.py "<log>" 2025 iron,steel 1 15 15 1 0
                         (args: log year words n_first n_ed n_red show_unsolvable repeat)
@@ -24,12 +27,13 @@ HOW TO RUN
 
 import os, re, sys, csv, json, subprocess, webbrowser
 
-__version__ = "1.0"
+__version__ = "1.1"
 APP_NAME    = "gcamlog"
 AUTHOR      = "Ahmed SM Sobhy"
-AFFILIATION = "PhD candidate\nKAIST IAM GROUP"
-GITHUB      = "github.com/AhmedSMSobhy/gcamlog"
-GITHUB_URL  = "https://github.com/AhmedSMSobhy/gcamlog"
+AFFILIATION = "KAIST IAM GROUP"
+GITHUB_URL  = "https://github.com/GCAM-KAIST/gcamlog"   # the app's home (Help menu: guide + issues)
+LAB         = "github.com/GCAM-KAIST"               # the lab's official GitHub (About box)
+LAB_URL     = "https://github.com/GCAM-KAIST"
 
 LOG_KEYS   = ["X","XL","XR","ED","EDL","EDR","RED","brk","Supply","Demand","MrkType","Market"]
 HEADER_LOG = ["X","XL","XR","ED","EDL","EDR","RED","brk","Supply","Demand","Mrk Type","Market"]
@@ -374,6 +378,14 @@ def market_matches(market, words):
             return True
     return False
 
+def row_matches(row, words):
+    """Search the GOOD (the market name with the region/basin cut off) - that is what the
+    user changed, and it makes glued names work ('USAiron and steel' -> 'iron and steel').
+    Markets that could not be split (no known region prefix, e.g. the global rowCO2) have a
+    blank good, so for those the full market name is searched instead."""
+    good = row.get("good")
+    return market_matches(good if good else row.get("Market"), words)
+
 def build_rows(rows, words, n_first, n_ed, n_red, repeat=False):
     """Four groups: 1 top line(s), 2 our change, 3 top ED, 4 top RED. A market can belong to several.
     repeat=False : shown ONCE, in its lowest-numbered group, tagged '(also in 3, 4)' for the others.
@@ -382,7 +394,7 @@ def build_rows(rows, words, n_first, n_ed, n_red, repeat=False):
     n_first = max(0, n_first)
 
     g1 = list(range(min(n_first, len(rows))))                                             # top line(s)
-    g2 = [i for i in range(len(rows)) if words and market_matches(rows[i]["Market"], words)]  # our change
+    g2 = [i for i in range(len(rows)) if words and row_matches(rows[i], words)]               # our change
     g3 = sorted(range(len(rows)), key=lambda i: abs(rows[i]["ED"]  or 0), reverse=True)[:max(0, n_ed)]   # top ED
     g4 = sorted(range(len(rows)), key=lambda i: abs(rows[i]["RED"] or 0), reverse=True)[:max(0, n_red)]  # top RED
     GROUPS = [(1, g1), (2, g2), (3, g3), (4, g4)]
@@ -560,7 +572,10 @@ def _fill_readme(ws):
 
 
 # ----------------------------------------------------------------------------- driver
-def run(log, year, words, n_first, n_ed, n_red, show_unsolvable=True, repeat=False, open_after=True):
+def compute(log, year, words, n_first, n_ed, n_red, show_unsolvable=True, repeat=False):
+    """Parse the log and build the per-year tables WITHOUT writing any file.
+    Returns (results, stats, out_path): the tables, the summary numbers, and the suggested
+    .xlsx path (next to the log) used if the user downloads the Excel."""
     lines = read_lines(log)
     y2p, p2y = year_period_maps(lines)
 
@@ -576,18 +591,36 @@ def run(log, year, words, n_first, n_ed, n_red, show_unsolvable=True, repeat=Fal
         if not wanted:
             raise ValueError("This log has no failed periods (no 'Model did not solve' dumps).")
     else:
+        raw = re.sub(r"\s*-\s*", "-", raw)                 # "2025 - 2040" -> "2025-2040"
+        vals, fails = [], None
         for tok in re.split(r"[,\s;]+", raw):
             tok = tok.strip()
             if not tok:
                 continue
-            val = int(tok)
+            m = re.fullmatch(r"(\d+)-(\d+)", tok)          # a range = every FAILED year inside it
+            if m:
+                lo, hi = sorted((int(m.group(1)), int(m.group(2))))
+                if fails is None:                          # scan the log once, reuse per range
+                    fails = sorted({p2y.get(p, p) for p in failed_periods(lines)})
+                inside = [y for y in fails if lo <= y <= hi]
+                if not inside:
+                    raise ValueError(f"No failed years between {lo} and {hi} in this log. "
+                                     f"Failed years: {fails}")
+                vals += inside
+            else:
+                try:
+                    vals.append(int(tok))
+                except ValueError:
+                    raise ValueError(f"'{tok}' is not a year, a range like 2025-2040, or 'all'.")
+        for val in vals:
             if val in y2p:      per, yr = y2p[val], val
             elif val in p2y:    per, yr = val, p2y[val]
             else:               raise ValueError(f"Year/period {val} not found in log. Available years: {sorted(y2p)}")
             if yr not in seen:
                 seen.add(yr); wanted.append((per, yr))
         if not wanted:
-            raise ValueError("Please enter a year (e.g. 2025), several (2025,2030), or 'all'.")
+            raise ValueError("Please enter a year (e.g. 2025), several (2025,2030), "
+                             "a range (2025-2040), or 'all'.")
 
     iters_map = fail_iterations(lines)               # {period: iterations when it gave up}
     results, stats = [], []
@@ -601,7 +634,7 @@ def run(log, year, words, n_first, n_ed, n_red, show_unsolvable=True, repeat=Fal
             r["system"] = classify_system(r["good"] or r["Market"])
         part1 = [r for r in rows if r.get("part") != "unsolvable"]
         part2 = [r for r in rows if r.get("part") == "unsolvable"]
-        n_change = sum(1 for r in rows if market_matches(r["Market"], words))
+        n_change = sum(1 for r in rows if row_matches(r, words))
         selected   = build_rows(part1, words, n_first, n_ed, n_red, repeat=repeat)
         unsolvable = build_rows(part2, words, n_first, n_ed, n_red, repeat=repeat) if show_unsolvable else None
         results.append({"year": yr, "selected": selected, "unsolvable": unsolvable, "full_log": rows})
@@ -625,8 +658,14 @@ def run(log, year, words, n_first, n_ed, n_red, show_unsolvable=True, repeat=Fal
     if len(os.path.join(dirp, fname)) > 250:         # too long (e.g. long scenario)? drop the periods
         fname = f"{base}.xlsx"
     out = os.path.join(dirp, fname)
-    write_excel(results, out)
+    return results, stats, out
 
+
+def run(log, year, words, n_first, n_ed, n_red, show_unsolvable=True, repeat=False, open_after=True):
+    """Parse the log AND write the Excel right away (the headless command-line mode)."""
+    results, stats, out = compute(log, year, words, n_first, n_ed, n_red,
+                                  show_unsolvable=show_unsolvable, repeat=repeat)
+    write_excel(results, out)
     if open_after:
         open_in_os(out)
     return out, stats
@@ -645,43 +684,123 @@ def stats_text(out, stats):
     return "\n".join(lines)
 
 
-def _show_done(parent, out_path, stats):
-    """A tidy results window: a real table (one row per year) + the saved path."""
+def _fmt_cell(v):
+    """Short readable text for a table cell (floats shown compactly)."""
+    if v is None:
+        return ""
+    if isinstance(v, float):
+        return "%g" % v
+    return str(v)
+
+
+def _make_table(parent, rows, kind, empty_note=None):
+    """A scrollable read-only table (ttk.Treeview) with the SAME columns and row colours as the
+    Excel sheets. kind = 'criteria' (solvable/unsolvable) or 'full' (the whole year's errors,
+    where rows carry '_grp' = their criteria group, if any)."""
     import tkinter as tk
     from tkinter import ttk
-    win = tk.Toplevel(parent); win.title("Done"); win.resizable(False, False)
-    win.transient(parent)
-    try: win.grab_set()
-    except Exception: pass
-    frm = ttk.Frame(win, padding=14); frm.grid()
-    ttk.Label(frm, text="Done. Sheets generated:", font=("Segoe UI", 11, "bold")).grid(
-        row=0, column=0, sticky="w", pady=(0, 8))
+    first_col = REASON_HEADER if kind == "criteria" else "part"
+    first_key = "reason" if kind == "criteria" else "part"
+    cols = [first_col] + DISPLAY_HEADER
+    keys = [first_key] + DISPLAY_KEYS
 
-    cols  = ("year", "iters", "total", "solv", "unsolv", "match", "srows", "urows")
-    heads = {"year": "Year", "iters": "failed at iter", "total": "did not clear", "solv": "solvable",
-             "unsolv": "unsolvable", "match": "matched word", "srows": "solvable sheet", "urows": "unsolvable sheet"}
-    wids  = {"year": 52, "iters": 84, "total": 92, "solv": 72, "unsolv": 82, "match": 96, "srows": 100, "urows": 106}
-    tv = ttk.Treeview(frm, columns=cols, show="headings", height=min(max(len(stats), 1), 12))
+    box = ttk.Frame(parent)
+    tv = ttk.Treeview(box, columns=cols, show="headings")
+    vs = ttk.Scrollbar(box, orient="vertical", command=tv.yview)
+    hs = ttk.Scrollbar(box, orient="horizontal", command=tv.xview)
+    tv.configure(yscrollcommand=vs.set, xscrollcommand=hs.set)
+    tv.grid(row=0, column=0, sticky="nsew")
+    vs.grid(row=0, column=1, sticky="ns"); hs.grid(row=1, column=0, sticky="we")
+    box.rowconfigure(0, weight=1); box.columnconfigure(0, weight=1)
+
+    widths = {first_col: 230, "Market": 280, "region": 140, GOOD_HEADER: 210, "system": 105,
+              "Mrk Type": 90, "brk": 50}
+    LEFT = {first_col, "Market", "region", GOOD_HEADER, "system", "Mrk Type"}
     for c in cols:
-        tv.heading(c, text=heads[c]); tv.column(c, width=wids[c], anchor="center")
-    for s in stats:
-        u  = s["unsolv"] if s["unsolv"] is not None else "(off)"
-        it = s.get("iters") if s.get("iters") is not None else "?"
-        tv.insert("", "end", values=(s["year"], it, s["total"], s["solvable"], s["unsolvable"],
-                                     s["matched"], s["sel"], u))
-    tv.grid(row=1, column=0, sticky="we")
+        tv.heading(c, text=c)
+        tv.column(c, width=widths.get(c, 85), anchor="w" if c in LEFT else "center", stretch=False)
 
-    ttk.Label(frm, text="Saved to:", font=("Segoe UI", 9, "bold")).grid(row=2, column=0, sticky="w", pady=(10, 0))
-    pth = ttk.Entry(frm, width=70); pth.insert(0, out_path); pth.configure(state="readonly")
-    pth.grid(row=3, column=0, sticky="we", pady=(2, 0))
+    # the same tints as the Excel sheets (criteria groups, and Part 1/2 in the full log)
+    tv.tag_configure("g1", background="#EAF2FB")
+    tv.tag_configure("g2", background="#FDEDE3")
+    tv.tag_configure("g3", background="#FCE9EB")
+    tv.tag_configure("g4", background="#FFF7E1")
+    tv.tag_configure("solvable",   background="#E2EFDA")
+    tv.tag_configure("unsolvable", background="#FCE4E4")
 
-    btns = ttk.Frame(frm); btns.grid(row=4, column=0, sticky="e", pady=(12, 0))
-    def _open_folder():
-        open_in_os(os.path.dirname(out_path))
-    ttk.Button(btns, text="Open folder", command=_open_folder).pack(side="left", padx=4)
-    ttk.Button(btns, text="OK", command=win.destroy).pack(side="left", padx=4)
+    if not rows and empty_note:
+        vals = [""] * len(cols); vals[1] = empty_note          # note sits in the Market column
+        tv.insert("", "end", values=vals)
+    for row in rows:
+        if kind == "criteria":
+            tags = ("g" + row["reason"][0],)
+        else:
+            g = row.get("_grp")
+            tags = ("g" + g,) if g else (row.get("part", ""),)
+        tv.insert("", "end", values=[_fmt_cell(row.get(k)) for k in keys], tags=tags)
+    return box
+
+
+def _show_results(parent, results, stats, out_path):
+    """The results viewer: the same tables as the Excel, shown natively INSIDE the app.
+    One outer tab per YEAR (with that year's summary line), and inside it the three tables
+    (solvable / unsolvable / full log), plus an optional 'Save Excel (.xlsx)' button."""
+    import tkinter as tk
+    from tkinter import ttk, messagebox
+    win = tk.Toplevel(parent)
+    win.title(f"{APP_NAME} - results")
+    win.geometry("1180x640")
+    win.minsize(760, 420)
+    frm = ttk.Frame(win, padding=10); frm.pack(fill="both", expand=True)
+
+    # one OUTER tab per year (so many years stay tidy); inside it: that year's summary line,
+    # then the three tables as inner tabs (solvable / unsolvable / full log)
+    stat_by_year = {s["year"]: s for s in stats}
+    years_nb = ttk.Notebook(frm); years_nb.pack(fill="both", expand=True)
+    for res in results:
+        y = res["year"]
+        page = ttk.Frame(years_nb, padding=(0, 6, 0, 0))
+        years_nb.add(page, text=f"  {y}  ")
+        s = stat_by_year.get(y)
+        if s:
+            u  = s["unsolv"] if s["unsolv"] is not None else "(off)"
+            it = s.get("iters") if s.get("iters") is not None else "?"
+            ttk.Label(page, text=(f"failed at iteration {it} - did not clear {s['total']} markets "
+                                  f"(solvable {s['solvable']}, unsolvable {s['unsolvable']}); "
+                                  f"matched your word(s) {s['matched']}; table rows: solvable "
+                                  f"{s['sel']}, unsolvable {u}"),
+                      font=("Segoe UI", 9)).pack(anchor="w")
+        nb = ttk.Notebook(page); nb.pack(fill="both", expand=True, pady=(6, 0))
+        nb.add(_make_table(nb, res["selected"], "criteria"), text="solvable")
+        if res["unsolvable"] is not None:
+            nb.add(_make_table(nb, res["unsolvable"], "criteria",
+                               empty_note="None. This period had no unsolvable (Part 2) markets."),
+                   text="unsolvable")
+        if res["full_log"] is not None:
+            cmap = {}                       # market -> its criteria group, for the row tints
+            for lst in (res["selected"], res["unsolvable"] or []):
+                for r in lst:
+                    g, mk = r["reason"][0], r.get("Market")
+                    if mk is not None and (mk not in cmap or g < cmap[mk]):
+                        cmap[mk] = g
+            full = [dict(r, _grp=cmap.get(r.get("Market"))) for r in res["full_log"]]
+            nb.add(_make_table(nb, full, "full"), text="full log")
+
+    bar = ttk.Frame(frm); bar.pack(fill="x", pady=(10, 0))
+    saved = ttk.Label(bar, text="", foreground="#555555", font=("Segoe UI", 9))
+    saved.pack(side="left")
+    def _download():
+        try:
+            write_excel(results, out_path)
+            saved.config(text="Saved: " + out_path)
+            open_in_os(out_path)
+        except PermissionError as ex:
+            messagebox.showwarning("Excel file is open", str(ex), parent=win)
+        except Exception as ex:
+            messagebox.showerror("Error", str(ex), parent=win)
+    ttk.Button(bar, text="Close", command=win.destroy).pack(side="right", padx=(6, 0))
+    ttk.Button(bar, text="Save Excel (.xlsx)", command=_download).pack(side="right")
     win.bind("<Escape>", lambda e: win.destroy())
-    win.bind("<Return>", lambda e: win.destroy())
 
 
 # ----------------------------------------------------------------------------- GUI
@@ -744,7 +863,7 @@ def launch_gui():
                 cb_log["values"] = [p] + list(cb_log["values"])
     ttk.Button(frm, text="Browse...", command=browse).grid(row=1, column=2, **pad)
 
-    ttk.Label(frm, text="Year(s): 2025, or 2025,2030,\nor 'all' failed years:",
+    ttk.Label(frm, text="Year(s): 2025, or 2025,2030,\nor 2025-2040, or 'all':",
               justify="right").grid(row=2, column=0, sticky="e", **pad)
     v_year = tk.StringVar(value="2025")
     ttk.Entry(frm, textvariable=v_year, width=14).grid(row=2, column=1, sticky="w", **pad)
@@ -808,20 +927,18 @@ def launch_gui():
             words = _words_value().split(",")
             n_first = int(v_nfirst.get() or 0)
             n_ed = int(v_ned.get() or 0); n_red = int(v_nred.get() or 0)
-            out, stats = run(log, v_year.get().strip(), words, n_first, n_ed, n_red,
-                             show_unsolvable=v_unsolv.get(), repeat=v_repeat.get(), open_after=True)
+            results, stats, out = compute(log, v_year.get().strip(), words, n_first, n_ed, n_red,
+                                          show_unsolvable=v_unsolv.get(), repeat=v_repeat.get())
             save_recent(log)                     # remember this log for next time's dropdown
             save_word(_words_value())            # remember the search word(s) too
             cb_log["values"] = load_recents()    # refresh dropdown: just-used log moves to the top
-            _show_done(root, out, stats)         # tidy results table
+            _show_results(root, results, stats, out)   # native table viewer (Excel = optional button)
             # keep the main window OPEN so you can generate again (use Close or the X)
-        except PermissionError as ex:
-            messagebox.showwarning("Excel file is open", str(ex))
         except Exception as ex:
             messagebox.showerror("Error", str(ex))
 
     btns = ttk.Frame(frm); btns.grid(row=9, column=0, columnspan=3, pady=(12, 0))
-    ttk.Button(btns, text="Generate Excel", command=generate).grid(row=0, column=0, padx=6)
+    ttk.Button(btns, text="Generate", command=generate).grid(row=0, column=0, padx=6)
     ttk.Button(btns, text="Close", command=root.destroy).grid(row=0, column=1, padx=6)
 
     # ---- menu bar: File / Help. On Windows it sits at the top of the window; on the Mac it
@@ -847,12 +964,13 @@ def launch_gui():
                   font=("Segoe UI", 13, "bold")).grid(row=1, column=0)
         ttk.Label(box, text='Turn a GCAM "did not solve" log into a simple Excel sheet.',
                   font=("Segoe UI", 9)).grid(row=2, column=0, pady=(4, 10))
-        ttk.Label(box, text=AUTHOR, font=("Segoe UI", 10, "bold")).grid(row=3, column=0)
+        ttk.Label(box, text=f"Developed by {AUTHOR}", font=("Segoe UI", 9),
+                  foreground="#555555").grid(row=3, column=0)
         ttk.Label(box, text=AFFILIATION, font=("Segoe UI", 9), foreground="#555555",
                   justify="center").grid(row=4, column=0, pady=(1, 0))
-        lk = tk.Label(box, text=GITHUB, fg="#0563C1", cursor="hand2",
+        lk = tk.Label(box, text=LAB, fg="#0563C1", cursor="hand2",
                       font=("Segoe UI", 9, "underline"))
-        lk.bind("<Button-1>", lambda e: webbrowser.open(GITHUB_URL))
+        lk.bind("<Button-1>", lambda e: webbrowser.open(LAB_URL))
         lk.grid(row=5, column=0, pady=(4, 0))
         ttk.Label(box, text="MIT license", font=("Segoe UI", 8),
                   foreground="#8a8a8a").grid(row=6, column=0, pady=(4, 12))
@@ -875,7 +993,7 @@ def launch_gui():
     recent_menu.configure(postcommand=_fill_recent_menu)
     filemenu.add_cascade(label="Open recent", menu=recent_menu)
     filemenu.add_separator()
-    filemenu.add_command(label="Generate Excel", command=generate,
+    filemenu.add_command(label="Generate", command=generate,
                          accelerator="Command-G" if IS_MAC else "Ctrl+G")
     if not IS_MAC:                               # the Mac gets Quit (Cmd+Q) in the app menu instead
         filemenu.add_separator()
