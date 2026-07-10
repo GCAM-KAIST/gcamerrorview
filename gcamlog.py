@@ -6,7 +6,7 @@ WHAT IT DOES
   Reads a GCAM main log, picks the period(s) you ask for (2025, or 2025,2030, or a range
   2025-2040 = every failed year inside it, or 'all'), and shows the filtered results in a
   table viewer INSIDE the app - one tab per sheet. An optional button there saves the same
-  thing as an Excel workbook with up to four sheets per year:
+  thing as an Excel workbook: one README sheet, then up to three sheets per year:
     - README                 : what each column means
     - error <year> solvable  : the Part-1 markets, filtered to what matters, with a "criteria"
                                column (1 top line(s), 2 our change, 3 top ED, 4 top RED)
@@ -31,8 +31,7 @@ __version__ = "1.1"
 APP_NAME    = "gcamlog"
 AUTHOR      = "Ahmed SM Sobhy"
 AFFILIATION = "KAIST IAM GROUP"
-GITHUB      = "github.com/GCAM-KAIST/gcamlog"       # the app's home (Help menu: guide + issues)
-GITHUB_URL  = "https://github.com/GCAM-KAIST/gcamlog"
+GITHUB_URL  = "https://github.com/GCAM-KAIST/gcamlog"   # the app's home (Help menu: guide + issues)
 LAB         = "github.com/GCAM-KAIST"               # the lab's official GitHub (About box)
 LAB_URL     = "https://github.com/GCAM-KAIST"
 
@@ -593,7 +592,7 @@ def compute(log, year, words, n_first, n_ed, n_red, show_unsolvable=True, repeat
             raise ValueError("This log has no failed periods (no 'Model did not solve' dumps).")
     else:
         raw = re.sub(r"\s*-\s*", "-", raw)                 # "2025 - 2040" -> "2025-2040"
-        vals = []
+        vals, fails = [], None
         for tok in re.split(r"[,\s;]+", raw):
             tok = tok.strip()
             if not tok:
@@ -601,7 +600,8 @@ def compute(log, year, words, n_first, n_ed, n_red, show_unsolvable=True, repeat
             m = re.fullmatch(r"(\d+)-(\d+)", tok)          # a range = every FAILED year inside it
             if m:
                 lo, hi = sorted((int(m.group(1)), int(m.group(2))))
-                fails = sorted({p2y.get(p, p) for p in failed_periods(lines)})
+                if fails is None:                          # scan the log once, reuse per range
+                    fails = sorted({p2y.get(p, p) for p in failed_periods(lines)})
                 inside = [y for y in fails if lo <= y <= hi]
                 if not inside:
                     raise ValueError(f"No failed years between {lo} and {hi} in this log. "
