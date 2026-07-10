@@ -2,8 +2,9 @@
 
 <img src="assets/gcamlog.png" alt="gcamlog icon" width="96" align="right">
 
-**Turn a [GCAM](https://github.com/JGCRI/gcam-core) "did not solve" log into a simple Excel
-sheet** that points straight at the markets causing the failure.
+**Turn a [GCAM](https://github.com/JGCRI/gcam-core) "did not solve" log into clean,
+colour-coded tables** that point straight at the markets causing the failure - shown right
+in the app, with one click to save them as an Excel sheet.
 
 When GCAM fails to solve a period it prints hundreds of unsolved markets into the log.
 Most of them are noise (supply and demand already almost match). gcamlog pulls out
@@ -20,7 +21,7 @@ you can hand a colleague one clean sheet instead of a 30,000-line log.
    * **macOS**: `gcamlog-macos.zip` (unzip, then **right-click the app > Open** the first time)
 2. **Run the script**: `python gcamlog.py`. Needs Python 3.9+ and `openpyxl`.
 
-Both open the same small window and produce the same Excel. Details for each are below.
+Both open the same small window and produce the same tables and Excel. Details for each are below.
 
 ## Contents
 
@@ -40,12 +41,21 @@ next run (no rebuild). A bundled copy inside the app is used only if the `data/`
 
 ## Output
 
+Press **Generate** and the results open **inside the app**: one tab per year (topped by that
+year's failed-at-iteration summary), and under it three tables - **solvable / unsolvable /
+full log** - with the same colour-coding as the Excel below.
+
+<img src="assets/screenshot_viewer.png" alt="the results viewer" width="900">
+
+Press **Save Excel (.xlsx)** there to keep the same thing as a file:
+
 <img src="assets/screenshot_excel.png" alt="the Excel it produces" width="900">
 
-A single Excel file: one **README** sheet, then **three sheets for each year** you ask for (you can
-request one year or several, e.g. `2025,2030`). The file is named
-`gcamlog_<scenario>_<yyyymmdd-hhmm>_<year(s)>.xlsx` (scenario and run time come from the log). The
-three per-year sheets are:
+A single Excel file: one **README** sheet, then **three sheets for each year** you ask for
+(one year `2025`, several `2025,2030`, a range `2025-2040` = every failed year inside it, or
+`all`). The file is named `gcamlog_<scenario>_<yyyymmdd-hhmm>_<year(s)>.xlsx` (scenario and
+run time come from the log) and saved next to the log. The three per-year sheets (the app's
+tabs mirror the same tables) are:
 
 ### 1) `README` sheet
 A short table explaining every column (`Market, Mrk Type, X, XL, XR, ED, EDL, EDR, RED, brk,
@@ -91,8 +101,10 @@ came from. This is just a clean, organized view of the whole log for that year.
 
 1. **Double-click the app** (it can live anywhere). A small window opens.
 2. Pick the log (recent logs are remembered), type the word(s) you changed (e.g. `iron,steel`),
-   pick the year (e.g. `2025`), set how many rows you want, then press **Generate Excel**.
-3. The file is written next to the log and opens automatically.
+   pick the year(s) (`2025`, `2025,2030`, `2025-2040`, or `all`), set how many rows you want,
+   then press **Generate**. The results open right in the app.
+3. Want the file too? Press **Save Excel (.xlsx)** there: it is written next to the log and
+   opens automatically.
 
 > **Windows SmartScreen** may warn on first run because the app is not code-signed.
 > Click **More info**, then **Run anyway**. (It only reads a text log and writes an Excel file.)
@@ -110,7 +122,9 @@ pip install -r requirements.txt
 python gcamlog.py
 ```
 
-Headless (no popup), for scripting. Args are `log year words n_first n_ed n_red show_unsolvable repeat`:
+Headless (no popup), for scripting - this mode always writes the Excel directly. Args are
+`log year words n_first n_ed n_red show_unsolvable repeat`, and `year` accepts `2025`,
+`2025,2030`, `2025-2040`, or `all`:
 
 ```bash
 python gcamlog.py "<log>" 2025 iron,steel 1 15 15 1 0
