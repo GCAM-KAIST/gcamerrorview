@@ -6,13 +6,13 @@ __pycache__/
 *.pyc
 
 # --- Binaries live on the Releases page, not in git ---
-gcamlog.exe
-gcamlog-windows.exe
-gcamlog-macos.zip
-gcamlog.app/
+gcamerrorview.exe
+gcamerrorview-windows.exe
+gcamerrorview-macos.zip
+gcamerrorview.app/
 
 # --- Tool output (generated Excel files) ---
-gcamlog_*.xlsx
+gcamerrorview_*.xlsx
 
 # --- Never publish real GCAM run logs (private paths / unpublished data) ---
 # The tiny synthetic demo log is explicitly kept (exception below).

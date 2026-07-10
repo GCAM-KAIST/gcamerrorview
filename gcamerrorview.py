@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-gcamlog: turn a GCAM "did not solve" log into a simple Excel sheet.
+gcamerrorview: turn a GCAM "did not solve" log into a simple Excel sheet.
 
 WHAT IT DOES
   Reads a GCAM main log, picks the period(s) you ask for (2025, or 2025,2030, or a range
@@ -16,22 +16,22 @@ WHAT IT DOES
   "(also in ...)" for the others (or once per group if "Repeat" is ticked).
 
 HOW TO RUN
-  Just double-click it, or:   python gcamlog.py
+  Just double-click it, or:   python gcamerrorview.py
   A small window pops up and asks for the search word (e.g. iron,steel) and a few options.
   Generate opens the results tables in the app; "Save Excel (.xlsx)" saves the file in the
   SAME folder as the log. (The headless mode below always writes the Excel directly.)
 
-  (Advanced) headless:  python gcamlog.py "<log>" 2025 iron,steel 1 15 15 1 0
+  (Advanced) headless:  python gcamerrorview.py "<log>" 2025 iron,steel 1 15 15 1 0
                         (args: log year words n_first n_ed n_red show_unsolvable repeat)
 """
 
 import os, re, sys, csv, json, subprocess, webbrowser
 
 __version__ = "1.1"
-APP_NAME    = "gcamlog"
+APP_NAME    = "gcamerrorview"
 AUTHOR      = "Ahmed SM Sobhy"
 AFFILIATION = "KAIST IAM GROUP"
-GITHUB_URL  = "https://github.com/GCAM-KAIST/gcamlog"   # the app's home (Help menu: guide + issues)
+GITHUB_URL  = "https://github.com/GCAM-KAIST/gcamerrorview"   # the app's home (Help menu: guide + issues)
 LAB         = "github.com/GCAM-KAIST"               # the lab's official GitHub (About box)
 LAB_URL     = "https://github.com/GCAM-KAIST"
 
@@ -123,7 +123,7 @@ APP_DIR = _app_dir()
 DEFAULT_LOG = _guess_log(APP_DIR)
 
 # remember recently-used logs (a small file in the user's home folder; works on Windows and Mac)
-RECENTS_FILE = os.path.join(os.path.expanduser("~"), ".gcamlog_recent.json")
+RECENTS_FILE = os.path.join(os.path.expanduser("~"), ".gcamerrorview_recent.json")
 
 def load_recents():
     try:
@@ -142,7 +142,7 @@ def save_recent(path):
         pass
 
 # remember recently-used search words too
-WORDS_FILE = os.path.join(os.path.expanduser("~"), ".gcamlog_words.json")
+WORDS_FILE = os.path.join(os.path.expanduser("~"), ".gcamerrorview_words.json")
 
 def load_words():
     try:
@@ -433,7 +433,7 @@ def write_excel(results, out_path):
         from openpyxl import Workbook
         from openpyxl.styles import Border, Side
     except ImportError:
-        raise RuntimeError("Python cannot find the 'openpyxl' library, which gcamlog needs to write "
+        raise RuntimeError("Python cannot find the 'openpyxl' library, which gcamerrorview needs to write "
                            "Excel files.\n\nInstall it once, then try again:\n    pip install openpyxl")
     thin = Side(style="thin", color="D9D9D9")
     BORDER = Border(left=thin, right=thin, top=thin, bottom=thin)
@@ -643,7 +643,7 @@ def compute(log, year, words, n_first, n_ed, n_red, show_unsolvable=True, repeat
                       "matched": n_change, "sel": len(selected),
                       "unsolv": (len(unsolvable) if unsolvable is not None else None)})
 
-    # file name: gcamlog_<scenario>_<yyyymmdd-hhmm>_<periods>.xlsx
+    # file name: gcamerrorview_<scenario>_<yyyymmdd-hhmm>_<periods>.xlsx
     scenario, stamp = scenario_and_stamp(lines, log)
     if all_mode:
         periods = "all"
@@ -653,7 +653,7 @@ def compute(log, year, words, n_first, n_ed, n_red, show_unsolvable=True, repeat
         yrs = [yr for _, yr in wanted]
         periods = f"{min(yrs)}to{max(yrs)}"          # a range, so many periods stay short
     dirp = os.path.dirname(os.path.abspath(log))
-    base = "_".join(["gcamlog", _safe(scenario)] + ([_safe(stamp)] if stamp else []))
+    base = "_".join(["gcamerrorview", _safe(scenario)] + ([_safe(stamp)] if stamp else []))
     fname = f"{base}_{periods}.xlsx"
     if len(os.path.join(dirp, fname)) > 250:         # too long (e.g. long scenario)? drop the periods
         fname = f"{base}.xlsx"
@@ -811,7 +811,7 @@ def launch_gui():
     root = tk.Tk()
     root.title(APP_NAME)
     root.resizable(False, False)
-    _ico = _asset_path("gcamlog.ico")     # window + taskbar icon, if an .ico is available
+    _ico = _asset_path("gcamerrorview.ico")     # window + taskbar icon, if an .ico is available
     if _ico:
         try: root.iconbitmap(default=_ico)
         except Exception:
@@ -830,7 +830,7 @@ def launch_gui():
 
     # header: logo, then the app name (big + bold) with a small italic subtitle under it
     header = ttk.Frame(frm); header.grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 10))
-    _png = _asset_path("gcamlog.png")
+    _png = _asset_path("gcamerrorview.png")
     if _png:
         try:
             _img = tk.PhotoImage(file=_png)
