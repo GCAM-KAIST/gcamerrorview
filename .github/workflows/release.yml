@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install build tools
-        run: pip install pyinstaller openpyxl
+        run: pip install pyinstaller openpyxl pillow
       - name: Build the exe
         run: pyinstaller --onefile --windowed --name gcamerrorview --icon assets/gcamerrorview.ico --add-data "assets/gcamerrorview.ico;assets" --add-data "assets/gcamerrorview.png;assets" --add-data "data/gcam_regions.csv;data" --add-data "data/gcam_systems.csv;data" gcamerrorview.py
       - name: Rename for the release
@@ -37,7 +37,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install build tools
-        run: pip install pyinstaller openpyxl
+        run: pip install pyinstaller openpyxl pillow
       - name: Make the Mac icon (.icns) from the png
         run: |
           mkdir gcamerrorview.iconset

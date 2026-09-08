@@ -1,5 +1,6 @@
-# Runtime dependency (needed only if you run gcamerrorview.py directly):
+# Runtime dependencies (needed only if you run gcamerrorview.py directly):
 openpyxl>=3.1
+pillow>=10.0
 
 # Build-only dependency (needed only to compile the .exe via build_exe.bat):
 pyinstaller>=6.0

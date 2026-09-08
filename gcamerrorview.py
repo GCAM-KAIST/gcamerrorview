@@ -20,6 +20,9 @@ HOW TO RUN
   A small window pops up and asks for the search word (e.g. iron,steel) and a few options.
   Generate opens the results tables in the app; "Save Excel (.xlsx)" saves the file in the
   SAME folder as the log. (The headless mode below always writes the Excel directly.)
+  The viewer also has: Copy picture / Copy table (clipboard), Save pictures (.png, one per
+  table, in the log's folder), Save PDF (.pdf, one table per page; a long full log is split
+  over several pages), and a Share menu (Slack / Email / Print).
 
   (Advanced) headless:  python gcamerrorview.py "<log>" 2025 iron,steel 1 15 15 1 0
                         (args: log year words n_first n_ed n_red show_unsolvable repeat)
@@ -27,7 +30,7 @@ HOW TO RUN
 
 import os, re, sys, csv, json, subprocess, webbrowser
 
-__version__ = "1.1"
+__version__ = "1.2"
 APP_NAME    = "gcamerrorview"
 AUTHOR      = "Ahmed SM Sobhy"
 AFFILIATION = "KAIST IAM GROUP"
@@ -97,6 +100,19 @@ def open_in_os(path):
             subprocess.Popen(["open", path])
         else:
             subprocess.Popen(["xdg-open", path])
+    except Exception:
+        pass
+
+def reveal_in_folder(path):
+    """Open the file's folder with the file already selected (so it is easy to drag it into an
+    email or a chat). Windows: Explorer /select; macOS: Finder -R; elsewhere just the folder."""
+    try:
+        if sys.platform.startswith("win"):
+            subprocess.Popen(["explorer", "/select,", os.path.normpath(path)])
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", "-R", path])
+        else:
+            open_in_os(os.path.dirname(os.path.abspath(path)) or ".")
     except Exception:
         pass
 
@@ -645,6 +661,8 @@ def compute(log, year, words, n_first, n_ed, n_red, show_unsolvable=True, repeat
 
     # file name: gcamerrorview_<scenario>_<yyyymmdd-hhmm>_<periods>.xlsx
     scenario, stamp = scenario_and_stamp(lines, log)
+    for res in results:
+        res["scenario"] = scenario           # the viewer uses it to name pictures/PDF pages
     if all_mode:
         periods = "all"
     elif len(wanted) == 1:
@@ -691,6 +709,210 @@ def _fmt_cell(v):
     if isinstance(v, float):
         return "%g" % v
     return str(v)
+
+
+# ------------------------------------------------------------------ pictures / clipboard / pdf
+# the same tints as the viewer/Excel, used when drawing the tables as pictures
+IMG_TINT  = {"g1": "#EAF2FB", "g2": "#FDEDE3", "g3": "#FCE9EB", "g4": "#FFF7E1",
+             "solvable": "#E2EFDA", "unsolvable": "#FCE4E4"}
+IMG_GROUP = {"1": "#BDD7EE", "2": "#F8CBAD", "3": "#FFC7CE", "4": "#FFE699"}
+
+def _pil():
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+        return Image, ImageDraw, ImageFont
+    except ImportError:
+        raise RuntimeError(f"Python cannot find the 'Pillow' library, which {APP_NAME} needs to "
+                           "make pictures and PDF files.\n\nInstall it once, then try again:\n"
+                           "    pip install pillow")
+
+def _img_fonts():
+    """(normal, bold) fonts for drawing tables; falls back to PIL's built-in font."""
+    _, _, ImageFont = _pil()
+    CAND = [("segoeui.ttf", "segoeuib.ttf"),                                   # Windows
+            ("/System/Library/Fonts/Helvetica.ttc", "/System/Library/Fonts/Helvetica.ttc"),  # macOS
+            ("DejaVuSans.ttf", "DejaVuSans-Bold.ttf")]                         # Linux
+    for reg, bold in CAND:
+        try:
+            return ImageFont.truetype(reg, 13), ImageFont.truetype(bold, 13)
+        except Exception:
+            continue
+    f = ImageFont.load_default()
+    return f, f
+
+def _table_columns(kind):
+    """(header names, row keys) for a table: 'criteria' tables lead with the criteria column,
+    the full log leads with the part column."""
+    first_col = REASON_HEADER if kind == "criteria" else "part"
+    first_key = "reason" if kind == "criteria" else "part"
+    return [first_col] + DISPLAY_HEADER, [first_key] + DISPLAY_KEYS
+
+def _row_tint(row, kind):
+    """The background colour of a row in a picture (same rule as the viewer's tags)."""
+    if kind == "criteria":
+        return IMG_TINT.get("g" + row["reason"][0])
+    g = row.get("_grp")
+    if g:
+        return IMG_TINT.get("g" + g)
+    return IMG_TINT.get(row.get("part", ""))
+
+def render_table_image(rows, kind, title, empty_note=None):
+    """Draw ONE results table as a picture (PIL image) with the same columns and colours as
+    the viewer and the Excel sheets. Used by Copy picture / Save pictures / Save PDF."""
+    Image, ImageDraw, _ = _pil()
+    cols, keys = _table_columns(kind)
+    F, FB = _img_fonts()
+    PADX, ROW_H, TITLE_H = 8, 24, 36
+    meas = ImageDraw.Draw(Image.new("RGB", (8, 8)))
+    def _w(text, f):
+        return int(meas.textlength(str(text), font=f))
+    def _fit(text, width):
+        """Shorten a cell text with '...' so it fits in its column."""
+        t = str(text)
+        if _w(t, F) <= width - 2 * PADX:
+            return t
+        while t and _w(t + "...", F) > width - 2 * PADX:
+            t = t[:-1]
+        return t + "..."
+    widths = []
+    for c, k in zip(cols, keys):
+        w = _w(c, FB)
+        for r in rows[:500]:                     # enough rows to size the columns well
+            w = max(w, _w(_fmt_cell(r.get(k)), F))
+        widths.append(min(max(w + 2 * PADX, 48), 340))
+    if not rows and empty_note:
+        widths[1] = max(widths[1], _w(empty_note, F) + 2 * PADX)
+    W = sum(widths) + 1
+    H = TITLE_H + ROW_H * (1 + max(1, len(rows))) + 1
+    im = Image.new("RGB", (W, H), "white")
+    d = ImageDraw.Draw(im)
+    d.text((PADX, 9), title, font=FB, fill="#1F4E78")
+    hdr_bg = "#1F4E78" if kind == "criteria" else "#404040"
+    y = TITLE_H
+    x = 0
+    for c, wd in zip(cols, widths):
+        d.rectangle([x, y, x + wd, y + ROW_H], fill=hdr_bg)
+        d.text((x + PADX, y + 5), _fit(c, wd), font=FB, fill="white")
+        x += wd
+    y += ROW_H
+    if not rows and empty_note:
+        d.text((widths[0] + PADX, y + 5), empty_note, font=F, fill="#808080")
+        y += ROW_H
+    for r in rows:
+        tint = _row_tint(r, kind)
+        x = 0
+        for (c, k), wd in zip(zip(cols, keys), widths):
+            fill = tint
+            if kind == "criteria" and k == "reason":
+                fill = IMG_GROUP.get(r["reason"][0], tint)
+            if fill:
+                d.rectangle([x, y, x + wd, y + ROW_H], fill=fill)
+            d.text((x + PADX, y + 5), _fit(_fmt_cell(r.get(k)), wd), font=F, fill="black")
+            x += wd
+        y += ROW_H
+    # light grid lines, like the Excel borders
+    GRID = "#D9D9D9"
+    x = 0
+    for wd in widths + [0]:
+        d.line([x, TITLE_H, x, H - 1], fill=GRID); x += wd
+    yy = TITLE_H
+    while yy <= H - 1:
+        d.line([0, yy, W - 1, yy], fill=GRID); yy += ROW_H
+    return im
+
+def copy_image_to_clipboard(img):
+    """Put a picture on the system clipboard, so it can be pasted (Ctrl+V / Cmd+V) into
+    Slack, Word, PowerPoint, email... Windows uses the raw clipboard; macOS uses osascript."""
+    import io
+    if sys.platform.startswith("win"):
+        import ctypes
+        buf = io.BytesIO()
+        img.convert("RGB").save(buf, "BMP")
+        data = buf.getvalue()[14:]               # strip the BMP file header -> a CF_DIB
+        CF_DIB, GMEM_MOVEABLE = 8, 0x0002
+        k32, u32 = ctypes.windll.kernel32, ctypes.windll.user32
+        k32.GlobalAlloc.restype = ctypes.c_void_p
+        k32.GlobalLock.restype = ctypes.c_void_p
+        k32.GlobalLock.argtypes = [ctypes.c_void_p]
+        k32.GlobalUnlock.argtypes = [ctypes.c_void_p]
+        u32.SetClipboardData.argtypes = [ctypes.c_uint, ctypes.c_void_p]
+        u32.SetClipboardData.restype = ctypes.c_void_p
+        h = k32.GlobalAlloc(GMEM_MOVEABLE, len(data))
+        ctypes.memmove(k32.GlobalLock(h), data, len(data))
+        k32.GlobalUnlock(h)
+        if not u32.OpenClipboard(0):
+            raise RuntimeError("Could not open the Windows clipboard (another app is using it). "
+                               "Please try again.")
+        try:
+            u32.EmptyClipboard()
+            u32.SetClipboardData(CF_DIB, h)
+        finally:
+            u32.CloseClipboard()
+    elif sys.platform == "darwin":
+        import tempfile
+        p = os.path.join(tempfile.gettempdir(), "gcamerrorview_clipboard.png")
+        img.save(p, "PNG")
+        subprocess.run(["osascript", "-e",
+                        f'set the clipboard to (read (POSIX file "{p}") as «class PNGf»)'],
+                       check=True)
+    else:
+        raise RuntimeError("Copying pictures to the clipboard is only supported on Windows and macOS.")
+
+def table_to_tsv(rows, kind, empty_note=None):
+    """The table as tab-separated text: paste it straight into Excel, Word or Google Sheets
+    and it lands as a real table."""
+    cols, keys = _table_columns(kind)
+    out = ["\t".join(cols)]
+    for r in rows:
+        out.append("\t".join(_fmt_cell(r.get(k)) for k in keys))
+    if not rows and empty_note:
+        out.append(empty_note)
+    return "\n".join(out)
+
+def save_tables_pdf(views, pdf_path):
+    """views = [(title, rows, kind, empty_note)]. One PDF, one table per page (A4 landscape,
+    scaled to fit). A long table (the full log) is split over several pages, with the header
+    repeated, so every page stays readable when printed."""
+    Image, _, _ = _pil()
+    ROWS_PER_PAGE = 42
+    pages = []
+    for title, rows, kind, note in views:
+        if len(rows) <= ROWS_PER_PAGE:
+            chunks = [rows]
+        else:
+            chunks = [rows[i:i + ROWS_PER_PAGE] for i in range(0, len(rows), ROWS_PER_PAGE)]
+        for ci, ch in enumerate(chunks):
+            t = title if len(chunks) == 1 else f"{title}  (page {ci + 1} of {len(chunks)})"
+            pages.append(render_table_image(ch, kind, t, empty_note=(note if not rows else None)))
+    A4W, A4H = 1754, 1240                        # A4 landscape at 150 dpi (keeps the PDF small)
+    sheets = []
+    for pg in pages:
+        sc = min((A4W - 60) / pg.width, (A4H - 60) / pg.height, 1.0)
+        if sc < 1.0:
+            pg = pg.resize((max(1, int(pg.width * sc)), max(1, int(pg.height * sc))), Image.LANCZOS)
+        sheet = Image.new("RGB", (A4W, A4H), "white")
+        sheet.paste(pg, ((A4W - pg.width) // 2, 30))
+        sheets.append(sheet)
+    try:
+        sheets[0].save(pdf_path, save_all=True, append_images=sheets[1:], resolution=150,
+                       quality=60)              # gentle JPEG compression keeps the file small
+    except PermissionError:
+        raise PermissionError("The PDF file is already open, so it cannot be updated:\n\n"
+                              f"{os.path.basename(pdf_path)}\n\nPlease close it, then try again.")
+    return pdf_path
+
+def print_file(path):
+    """Send a file to the default printer (Windows), or the print queue (macOS/Linux).
+    Falls back to just opening it so the user can press Print."""
+    try:
+        if sys.platform.startswith("win"):
+            os.startfile(path, "print")
+        else:
+            subprocess.Popen(["lpr", path])
+        return True
+    except Exception:
+        open_in_os(path)
+        return False
 
 
 def _make_table(parent, rows, kind, empty_note=None):
@@ -744,18 +966,26 @@ def _make_table(parent, rows, kind, empty_note=None):
 def _show_results(parent, results, stats, out_path):
     """The results viewer: the same tables as the Excel, shown natively INSIDE the app.
     One outer tab per YEAR (with that year's summary line), and inside it the three tables
-    (solvable / unsolvable / full log), plus an optional 'Save Excel (.xlsx)' button."""
+    (solvable / unsolvable / full log). The bottom bar works on the table ON SCREEN
+    (Copy picture / Copy table / Share) or on EVERYTHING (Save pictures / Save PDF /
+    Save Excel)."""
     import tkinter as tk
     from tkinter import ttk, messagebox
     win = tk.Toplevel(parent)
     win.title(f"{APP_NAME} - results")
-    win.geometry("1180x640")
+    win.geometry("1180x660")
     win.minsize(760, 420)
     frm = ttk.Frame(win, padding=10); frm.pack(fill="both", expand=True)
 
+    scenario = results[0].get("scenario") or os.path.splitext(os.path.basename(out_path))[0]
+    dirp = os.path.dirname(os.path.abspath(out_path))       # the output folder (= the log's)
+    EMPTY_NOTE = "None. This period had no unsolvable (Part 2) markets."
+
     # one OUTER tab per year (so many years stay tidy); inside it: that year's summary line,
-    # then the three tables as inner tabs (solvable / unsolvable / full log)
+    # then the three tables as inner tabs. views[year] = [(tab name, rows, kind, empty note)]
+    # feeds the picture/PDF/copy actions with exactly what each tab shows.
     stat_by_year = {s["year"]: s for s in stats}
+    views, inner_nb = {}, {}
     years_nb = ttk.Notebook(frm); years_nb.pack(fill="both", expand=True)
     for res in results:
         y = res["year"]
@@ -771,11 +1001,13 @@ def _show_results(parent, results, stats, out_path):
                                   f"{s['sel']}, unsolvable {u}"),
                       font=("Segoe UI", 9)).pack(anchor="w")
         nb = ttk.Notebook(page); nb.pack(fill="both", expand=True, pady=(6, 0))
+        inner_nb[y] = nb
+        vlist = [("solvable", res["selected"], "criteria", None)]
         nb.add(_make_table(nb, res["selected"], "criteria"), text="solvable")
         if res["unsolvable"] is not None:
-            nb.add(_make_table(nb, res["unsolvable"], "criteria",
-                               empty_note="None. This period had no unsolvable (Part 2) markets."),
+            nb.add(_make_table(nb, res["unsolvable"], "criteria", empty_note=EMPTY_NOTE),
                    text="unsolvable")
+            vlist.append(("unsolvable", res["unsolvable"], "criteria", EMPTY_NOTE))
         if res["full_log"] is not None:
             cmap = {}                       # market -> its criteria group, for the row tints
             for lst in (res["selected"], res["unsolvable"] or []):
@@ -785,21 +1017,136 @@ def _show_results(parent, results, stats, out_path):
                         cmap[mk] = g
             full = [dict(r, _grp=cmap.get(r.get("Market"))) for r in res["full_log"]]
             nb.add(_make_table(nb, full, "full"), text="full log")
+            vlist.append(("full log", full, "full", None))
+        views[y] = vlist
 
-    bar = ttk.Frame(frm); bar.pack(fill="x", pady=(10, 0))
-    saved = ttk.Label(bar, text="", foreground="#555555", font=("Segoe UI", 9))
-    saved.pack(side="left")
-    def _download():
+    def _current_view():
+        """(year, tab name, rows, kind, empty note) of the table on screen RIGHT NOW."""
+        y = results[years_nb.index(years_nb.select())]["year"]
+        nb = inner_nb[y]
+        return (y,) + views[y][nb.index(nb.select())]
+
+    def _all_views():
+        """Every table of every year, in tab order."""
+        return [(res["year"],) + v for res in results for v in views[res["year"]]]
+
+    def _title_of(y, name):
+        return f"{scenario}   {y}   {name}"
+
+    status = ttk.Label(frm, text="", foreground="#555555", font=("Segoe UI", 9))
+    def _say(msg): status.config(text=msg)
+
+    def _copy_picture():
+        try:
+            y, name, rows, kind, note = _current_view()
+            copy_image_to_clipboard(render_table_image(rows, kind, _title_of(y, name),
+                                                       empty_note=note))
+            _say(f"Picture of '{y} {name}' copied - paste it anywhere with Ctrl+V (Cmd+V on Mac).")
+        except Exception as ex:
+            messagebox.showerror("Error", str(ex), parent=win)
+
+    def _copy_table():
+        try:
+            y, name, rows, kind, note = _current_view()
+            win.clipboard_clear()
+            win.clipboard_append(table_to_tsv(rows, kind, empty_note=note))
+            _say(f"Table '{y} {name}' copied - paste it into Excel or Word (it lands as a table).")
+        except Exception as ex:
+            messagebox.showerror("Error", str(ex), parent=win)
+
+    def _save_pictures():
+        # solvable + unsolvable only: a 2000-row full log makes a silly 40,000-pixel picture;
+        # the full log belongs in the PDF, where it is split into readable pages
+        try:
+            n = 0
+            for y, name, rows, kind, note in _all_views():
+                if kind == "full":
+                    continue
+                img = render_table_image(rows, kind, _title_of(y, name), empty_note=note)
+                img.save(os.path.join(dirp, f"{_safe(scenario)}_{y}_{_safe(name)}.png"))
+                n += 1
+            _say(f"Saved {n} pictures in: {dirp}  (the full log is in Save PDF instead)")
+            open_in_os(dirp)
+        except Exception as ex:
+            messagebox.showerror("Error", str(ex), parent=win)
+
+    pdf_path = os.path.splitext(out_path)[0] + ".pdf"
+    def _make_pdf():
+        vs = [(_title_of(y, name), rows, kind, note) for y, name, rows, kind, note in _all_views()]
+        return save_tables_pdf(vs, pdf_path)
+
+    def _save_pdf():
+        try:
+            p = _make_pdf()
+            _say("Saved: " + p)
+            open_in_os(p)
+        except Exception as ex:
+            messagebox.showerror("Error", str(ex), parent=win)
+
+    def _save_excel():
         try:
             write_excel(results, out_path)
-            saved.config(text="Saved: " + out_path)
+            _say("Saved: " + out_path)
             open_in_os(out_path)
         except PermissionError as ex:
             messagebox.showwarning("Excel file is open", str(ex), parent=win)
         except Exception as ex:
             messagebox.showerror("Error", str(ex), parent=win)
+
+    # Share: Slack gets the PICTURE (paste in the chat), Email gets the EXCEL (the real data),
+    # Print goes through the PDF (print-ready pages).
+    def _share_slack():
+        try:
+            y, name, rows, kind, note = _current_view()
+            copy_image_to_clipboard(render_table_image(rows, kind, _title_of(y, name),
+                                                       empty_note=note))
+            try: webbrowser.open("slack://open")
+            except Exception: pass
+            _say("Picture copied - click into the Slack chat and press Ctrl+V (Cmd+V on Mac).")
+        except Exception as ex:
+            messagebox.showerror("Error", str(ex), parent=win)
+
+    def _share_email():
+        try:
+            if not os.path.exists(out_path):
+                write_excel(results, out_path)
+            reveal_in_folder(out_path)
+            from urllib.parse import quote
+            subj = quote(f"{APP_NAME}: {scenario} results")
+            body = quote(f"Attached: {os.path.basename(out_path)}\n"
+                         "(drag it into this email from the folder that just opened)")
+            webbrowser.open(f"mailto:?subject={subj}&body={body}")
+            _say(f"Email opened - drag {os.path.basename(out_path)} from the folder into it.")
+        except Exception as ex:
+            messagebox.showerror("Error", str(ex), parent=win)
+
+    def _share_print():
+        try:
+            p = _make_pdf()
+            if print_file(p):
+                _say("Sent to the printer: " + os.path.basename(p))
+            else:
+                _say("Opened the PDF - press Ctrl+P there to print it.")
+        except Exception as ex:
+            messagebox.showerror("Error", str(ex), parent=win)
+
+    def _share_menu():
+        m = tk.Menu(win, tearoff=0)
+        m.add_command(label="Slack  (copies the picture - paste it in the chat)", command=_share_slack)
+        m.add_command(label="Email  (attaches the Excel)", command=_share_email)
+        m.add_command(label="Print  (prints the PDF)", command=_share_print)
+        m.tk_popup(b_share.winfo_rootx(), b_share.winfo_rooty() + b_share.winfo_height())
+
+    bar = ttk.Frame(frm); bar.pack(fill="x", pady=(8, 0))
+    ttk.Button(bar, text="Copy picture", command=_copy_picture).pack(side="left")
+    ttk.Button(bar, text="Copy table", command=_copy_table).pack(side="left", padx=(6, 0))
+    b_share = ttk.Button(bar, text="Share ▾", command=_share_menu)
+    b_share.pack(side="left", padx=(6, 0))
     ttk.Button(bar, text="Close", command=win.destroy).pack(side="right", padx=(6, 0))
-    ttk.Button(bar, text="Save Excel (.xlsx)", command=_download).pack(side="right")
+    ttk.Button(bar, text="Save Excel (.xlsx)", command=_save_excel).pack(side="right")
+    ttk.Button(bar, text="Save PDF (.pdf)", command=_save_pdf).pack(side="right", padx=(0, 6))
+    ttk.Button(bar, text="Save pictures (.png)", command=_save_pictures).pack(side="right", padx=(0, 6))
+    status.pack(fill="x", pady=(6, 0))
     win.bind("<Escape>", lambda e: win.destroy())
 
 

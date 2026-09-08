@@ -4,7 +4,8 @@
 
 **Turn a [GCAM](https://github.com/JGCRI/gcam-core) "did not solve" log into clean,
 colour-coded tables** that point straight at the markets causing the failure - shown right
-in the app, with one click to save them as an Excel sheet.
+in the app, with one click to save them as an Excel sheet, pictures, or a print-ready PDF,
+copy them to the clipboard, or share them (Slack / Email / Print).
 
 When GCAM fails to solve a period it prints hundreds of unsolved markets into the log.
 Most of them are noise (supply and demand already almost match). gcamerrorview pulls out
@@ -19,7 +20,7 @@ you can hand a colleague one clean sheet instead of a 30,000-line log.
    install; Python is bundled inside. *Easiest.*
    * **Windows**: `gcamerrorview-windows.exe`
    * **macOS**: `gcamerrorview-macos.zip` (unzip, then **right-click the app > Open** the first time)
-2. **Run the script**: `python gcamerrorview.py`. Needs Python 3.9+ and `openpyxl`.
+2. **Run the script**: `python gcamerrorview.py`. Needs Python 3.9+ with `openpyxl` and `pillow`.
 
 Both open the same small window and produce the same tables and Excel. Details for each are below.
 
@@ -46,6 +47,17 @@ year's failed-at-iteration summary), and under it three tables - **solvable / un
 full log** - with the same colour-coding as the Excel below.
 
 <img src="assets/screenshot_viewer.png" alt="the results viewer" width="900">
+
+The bar under the tables works on the table **on screen** or on **everything**:
+
+| button | what it does |
+| --- | --- |
+| **Copy picture** | copies the table you are looking at to the clipboard as a picture - paste it into Slack, Word, PowerPoint or an email with `Ctrl+V` (`Cmd+V` on Mac) |
+| **Copy table** | copies the same table as text - paste it into Excel, Word or Google Sheets and it lands as a real table |
+| **Share ▾** | **Slack** (copies the picture, opens Slack - just paste), **Email** (opens a new email and the folder with the Excel selected - drag it in), **Print** (builds the PDF and sends it to the printer) |
+| **Save pictures (.png)** | saves every year's solvable + unsolvable tables as PNG files next to the log, named `<scenario>_<year>_<table>.png` |
+| **Save PDF (.pdf)** | one print-ready A4 PDF of **all** tables, one table per page; a long full log is split over several pages with the header repeated |
+| **Save Excel (.xlsx)** | the classic Excel workbook below |
 
 Press **Save Excel (.xlsx)** there to keep the same thing as a file:
 
@@ -104,7 +116,9 @@ came from. This is just a clean, organized view of the whole log for that year.
    pick the year(s) (`2025`, `2025,2030`, `2025-2040`, or `all`), set how many rows you want,
    then press **Generate**. The results open right in the app.
 3. Want the file too? Press **Save Excel (.xlsx)** there: it is written next to the log and
-   opens automatically.
+   opens automatically. Or **Copy picture / Copy table** to paste the current view anywhere,
+   **Save pictures / Save PDF** to keep everything as PNGs or one A4 PDF, and **Share** for
+   Slack, Email or the printer.
 
 > **Windows SmartScreen** may warn on first run because the app is not code-signed.
 > Click **More info**, then **Run anyway**. (It only reads a text log and writes an Excel file.)
@@ -135,7 +149,7 @@ python gcamerrorview.py "<log>" 2025 iron,steel 1 15 15 1 0
 You need **Python 3.9+** installed first (that is the only prerequisite). Then, in this folder:
 
 ```bash
-pip install pyinstaller openpyxl
+pip install pyinstaller openpyxl pillow
 pyinstaller --onefile --windowed --name gcamerrorview --icon assets\gcamerrorview.ico --add-data "assets\gcamerrorview.ico;assets" --add-data "assets\gcamerrorview.png;assets" --add-data "data\gcam_regions.csv;data" --add-data "data\gcam_systems.csv;data" gcamerrorview.py
 ```
 
