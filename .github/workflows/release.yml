@@ -37,7 +37,20 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install build tools
-        run: pip install pyinstaller openpyxl pillow
+        run: |
+          pip install pyinstaller openpyxl delocate
+          # The app is built "universal2" (one file for Intel and Apple Silicon Macs), so every
+          # compiled library inside it must contain both architectures. Pillow publishes two
+          # separate wheels, one per architecture, so download both and merge them into one
+          # universal wheel with delocate-merge before installing.
+          pip download "pillow==12.3.0" --only-binary=:all: --no-deps --platform macosx_11_0_arm64 -d wheels/arm64
+          pip download "pillow==12.3.0" --only-binary=:all: --no-deps --platform macosx_10_13_x86_64 -d wheels/x86_64
+          delocate-merge wheels/arm64/*.whl wheels/x86_64/*.whl -w wheels/universal2
+          ls wheels/universal2
+          pip install wheels/universal2/*.whl
+          so="$(python -c 'import PIL._imaging as m; print(m.__file__)')"
+          lipo -info "$so"
+          test "$(lipo -archs "$so" | wc -w)" -ge 2 || { echo "Pillow is not universal, stopping"; exit 1; }
       - name: Make the Mac icon (.icns) from the png
         run: |
           mkdir gcamerrorview.iconset
